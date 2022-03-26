@@ -13,17 +13,32 @@ def ax_kwarg(f):
 
 @ax_kwarg
 def plot_link(link, ax=None, **kwargs):
-    points = link.points
-    ax.plot([points[0][0], points[1][0]], [points[0][1], points[1][1]], **kwargs)
+    p0, p1 = link.points
+    ax.plot([p0[0], p1[0]], [p0[1], p1[1]], **kwargs)
+
+
+def _map_components(n, x0, x1):
+    return (x0, x1) if x0 <= x1 else (x0, x1 + n)
+
+
+def link_position_periodic(link):
+    p0, p1 = link.points
+    lengths = link.GridPointClass.lengths
+
+    return np.array([_map_components(length, x0, x1) for length, x0, x1 in zip(lengths, p0, p1)]).T
+
+
+@ax_kwarg
+def plot_link_periodic(link, ax=None, **kwargs):
+    ax.plot(*link_position_periodic(link).T, **kwargs)
 
 
 # todo single dispatch
 @ax_kwarg
-def plot_links(someone_with_links, ax=None, **kwargs):
+def plot_links(someone_with_links, plot_link_fn=plot_link, ax=None, **kwargs):
     iter_over = someone_with_links if isinstance(someone_with_links, list) else someone_with_links.links
     for link in iter_over:
-        plot_link(link, ax=ax, **kwargs)
-
+        plot_link_fn(link, ax=ax, **kwargs)
 
 @ax_kwarg
 def plot_bwr(mat, ax=None, colorbar=True, show=True, cmap='bwr', **kwargs):
