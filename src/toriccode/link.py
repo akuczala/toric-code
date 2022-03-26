@@ -1,29 +1,40 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Type
 
-from toriccode.grid_point import GRID_POINT_CLASS, GridPoint, Direction, H, V
-from toriccode.utils import PrintDataclassMixin
+from .grid_point import GridPoint, Direction, H, V
+from .utils import PrintDataclassMixin
 
 
 @dataclass(frozen=True)
-class Link(PrintDataclassMixin):
-    GridPointClass = GRID_POINT_CLASS
+class ContainsGridPoint:
+    GridPointClass: Type[GridPoint]
+
+
+@dataclass(frozen=True)
+class Link(ContainsGridPoint, PrintDataclassMixin):
     p0: GridPoint
     direction: Direction
 
     @classmethod
     def new(cls, p0, direction):
-        return cls(p0, direction)
+        return cls(GridPointClass=type(p0), p0=p0, direction=direction)
 
     @property
     def points(self):
         return self.p0, self.p0 + self.GridPointClass.unit(self.direction)
 
 
-@dataclass(frozen=True)
-class Star(PrintDataclassMixin):
-    GridPointClass = GRID_POINT_CLASS
+@dataclass(frozen=True, init=False)
+class Star(ContainsGridPoint, PrintDataclassMixin):
     p0: GridPoint  # center site
+
+    def __init__(self, p0):
+        object.__setattr__(self, 'GridPointClass', type(p0))
+        object.__setattr__(self, 'p0', p0)
+
+    @classmethod
+    def new(cls, p0):
+        return cls(GridPointClass=type(p0), p0=p0)
 
     @property
     def links(self) -> List[Link]:
@@ -37,9 +48,16 @@ class Star(PrintDataclassMixin):
 
 
 @dataclass(frozen=True)
-class Plaquette(PrintDataclassMixin):
-    GridPointClass = GRID_POINT_CLASS
+class Plaquette(ContainsGridPoint, PrintDataclassMixin):
     p0: GridPoint  # lower-left site
+
+    def __init__(self, p0):
+        object.__setattr__(self, 'GridPointClass', type(p0))
+        object.__setattr__(self, 'p0', p0)
+
+    @classmethod
+    def new(cls, p0):
+        return cls(GridPointClass=type(p0), p0=p0)
 
     @property
     def links(self) -> List[Link]:
