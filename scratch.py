@@ -2,6 +2,7 @@ import scipy.linalg as lin
 
 from toriccode.env import *
 from toriccode.plot_utils import *
+from toriccode.toric_terms import Star, Plaquette
 from toriccode.utils import *
 
 def test_stuff():
@@ -14,7 +15,7 @@ def test_stuff():
 
     def build_mini_H():
         links = Plaquette(GRID_POINT_CLASS.zero).links
-        return tensor_product((Pauli.Z for _ in links)).reshape(16, 16)
+        return tensor_product((link.operator.matrix for link in links)).reshape(16, 16)
 
 
     h = build_mini_H()

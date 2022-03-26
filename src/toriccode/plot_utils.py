@@ -12,17 +12,17 @@ def ax_kwarg(f):
 
 
 @ax_kwarg
-def plot_link(link, ax=None):
+def plot_link(link, ax=None, **kwargs):
     points = link.points
-    ax.plot([points[0][0], points[1][0]], [points[0][1], points[1][1]])
+    ax.plot([points[0][0], points[1][0]], [points[0][1], points[1][1]], **kwargs)
 
 
 # todo single dispatch
 @ax_kwarg
-def plot_links(someone_with_links, ax=None):
+def plot_links(someone_with_links, ax=None, **kwargs):
     iter_over = someone_with_links if isinstance(someone_with_links, list) else someone_with_links.links
     for link in iter_over:
-        plot_link(link, ax=ax)
+        plot_link(link, ax=ax, **kwargs)
 
 
 @ax_kwarg
