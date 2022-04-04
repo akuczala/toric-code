@@ -49,19 +49,26 @@ def test_dependent_types():
     gp2 = GP2.zero
     pass
 
+def map_operator_link(link: Link[Operator], qubit: Link[None]):
+    return link if qubit.same_link_position(link) else Link.with_new_content(PauliOperator.I)
+
+# todo sort this out. i'm tired
+def pad_term(term: Term, qubits: List[Link[None]]) -> GenericTerm:
+    return GenericTerm([map_operator_link(link) for link in term.links]) for qubit in qubits])
 
 def test_stuff2():
-    local_terms = (
+    local_terms: List[Term] = (
             [Star(GRID_POINT_CLASS.new(i, j)) for i, j in itertools.product([0, 1], [0, 1])]
             + [Plaquette(GRID_POINT_CLASS.new(i, j)) for i, j in itertools.product([0, 1], [0, 1])]
     )
     qubits: List[Link[None]] = list(set(
-        Link.new(link.p0, link.direction, None) for term in local_terms for link in term.links
+        link.with_new_content(None) for term in local_terms for link in term.links
     ))
     qubit_terms = {
         qubit: [link for term in local_terms for link in term.links if link.same_link_position(qubit)]
         for qubit in qubits
     }
+
     plot_kwargs = {
         Star: dict(c='red', linestyle='--'),
         Plaquette: dict(c='lime', linestyle='dotted')

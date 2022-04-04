@@ -1,3 +1,4 @@
+from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from typing import List
 
@@ -6,8 +7,28 @@ from toriccode.link import ContainsGridPoint, Link
 from toriccode.operators import Operator, PauliOperator
 
 
+class Term(ContainsGridPoint):
+
+    @property
+    @abstractmethod
+    def links(self) -> List[Link[Operator]]:
+        pass
+
+
 @dataclass(frozen=True, init=False)
-class Star(ContainsGridPoint):
+class GenericTerm(Term):
+    _links: List[Link[Operator]]
+
+    def __init__(self, links: List[Link[Operator]]):
+        object.__setattr__(self, 'GridPointClass', type(p0))
+        object.__setattr__(self, '_links', links)
+
+    @property
+    def links(self) -> List[Link[Operator]]:
+        return self._links
+
+@dataclass(frozen=True, init=False)
+class Star(Term):
     p0: GridPoint  # center site
 
     # todo make common to all ContainsGridPoint
@@ -31,7 +52,7 @@ class Star(ContainsGridPoint):
 
 
 @dataclass(frozen=True)
-class Plaquette(ContainsGridPoint):
+class Plaquette(Term):
     p0: GridPoint  # lower-left site
 
     def __init__(self, p0):

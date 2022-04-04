@@ -19,6 +19,7 @@ class ContainsGridPoint:
 
 
 T = TypeVar("T")
+S = TypeVar("S")
 
 
 @dataclass(frozen=True)
@@ -38,3 +39,6 @@ class Link(ContainsGridPoint, Generic[T]):
 
     def same_link_position(self, other: Link[T]) -> bool:
         return self.p0 == other.p0 and self.direction == other.direction
+
+    def with_new_content(self, content: S) -> Link[S]:
+        return Link.new(self.p0, self.direction, content)
