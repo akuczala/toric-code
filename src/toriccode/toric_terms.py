@@ -1,31 +1,11 @@
-from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from typing import List
 
 from toriccode.grid_point import GridPoint, H, V
-from toriccode.link import ContainsGridPoint, Link
+from toriccode.link import Link
 from toriccode.operators import Operator, PauliOperator
+from toriccode.terms import Term
 
-
-class Term(ContainsGridPoint):
-
-    @property
-    @abstractmethod
-    def links(self) -> List[Link[Operator]]:
-        pass
-
-
-@dataclass(frozen=True, init=False)
-class GenericTerm(Term):
-    _links: List[Link[Operator]]
-
-    def __init__(self, links: List[Link[Operator]]):
-        object.__setattr__(self, 'GridPointClass', type(p0))
-        object.__setattr__(self, '_links', links)
-
-    @property
-    def links(self) -> List[Link[Operator]]:
-        return self._links
 
 @dataclass(frozen=True, init=False)
 class Star(Term):
