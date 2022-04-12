@@ -15,12 +15,9 @@ class Term:
         pass
 
 
-@dataclass(frozen=True, init=False)
+@dataclass(frozen=True)
 class GenericTerm(Term):
     _boxed_operators: List[HasBox[Operator]]
-
-    def __init__(self, boxed_operators: List[HasBox[Operator]]):
-        object.__setattr__(self, '_boxed_operators', boxed_operators)
 
     @property
     def boxed_operators(self) -> List[HasBox[Operator]]:

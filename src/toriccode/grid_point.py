@@ -77,7 +77,7 @@ class GridPointTorus(GridPoint):
         return type(self)(tuple((s + o) % length for s, o, length in zip(self, other, self.lengths)))
 
 
-def make_grid_point_torus(*lengths: Tuple[int, ...]) -> GridPointTorus:
+def make_grid_point_torus(*lengths: int) -> GridPointTorus:
     return type(
         f"{GridPointTorus.__name__}" + "".join(str(length) for length in lengths),
         (GridPointTorus,), {'lengths': lengths}

@@ -8,18 +8,9 @@ from toriccode.operators import Operator, PauliOperator
 from toriccode.terms import LocalTerm
 
 
-@dataclass(frozen=True, init=False)
+@dataclass(frozen=True)
 class Star(LocalTerm):
     p0: GridPoint  # center site
-
-    # todo make common to all ContainsGridPoint
-    def __init__(self, p0):
-        object.__setattr__(self, 'GridPointClass', type(p0))
-        object.__setattr__(self, 'p0', p0)
-
-    @classmethod
-    def new(cls, p0):
-        return cls(GridPointClass=type(p0), p0=p0)
 
     @property
     def boxed_operators(self) -> List[HasBox[Operator]]:
@@ -35,14 +26,6 @@ class Star(LocalTerm):
 @dataclass(frozen=True)
 class Plaquette(LocalTerm):
     p0: GridPoint  # lower-left site
-
-    def __init__(self, p0):
-        object.__setattr__(self, 'GridPointClass', type(p0))
-        object.__setattr__(self, 'p0', p0)
-
-    @classmethod
-    def new(cls, p0):
-        return cls(GridPointClass=type(p0), p0=p0)
 
     @property
     def boxed_operators(self) -> List[HasBox[Operator]]:

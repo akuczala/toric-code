@@ -93,8 +93,8 @@ def operator_map_to_list(operator_map: Dict[int, Operator]) -> List[Operator]:
 
 
 def test_stuff2():
-    star_terms = [Star(GRID_POINT_CLASS.new(i, j)) for i, j in itertools.product([0, 1], [0, 1])]
-    plaquette_terms = [Plaquette(GRID_POINT_CLASS.new(i, j)) for i, j in itertools.product([0, 1], [0, 1])]
+    star_terms = [Star.new(GRID_POINT_CLASS.new(i, j)) for i, j in itertools.product([0, 1], [0, 1])]
+    plaquette_terms = [Plaquette.new(GRID_POINT_CLASS.new(i, j)) for i, j in itertools.product([0, 1], [0, 1])]
     local_terms: List[Term] = plaquette_terms
     qubits: List[Link[None]] = list(set(
         link.with_new_content(None) for term in local_terms for link in term.boxed_operators
