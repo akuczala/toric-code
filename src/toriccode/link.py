@@ -15,11 +15,6 @@ class Link(ContainsGridPoint, HasBox[T]):
     direction: Direction
     operator: T
 
-    # todo make common to all ContainsGridPoint
-    @classmethod
-    def new(cls, p0, direction, operator) -> Link[T]:
-        return cls(GridPointClass=type(p0), p0=p0, direction=direction, operator=operator)
-
     @property
     def boxed_value(self) -> T:
         return self.operator

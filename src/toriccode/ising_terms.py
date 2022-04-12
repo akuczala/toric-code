@@ -14,11 +14,6 @@ class Site(ContainsGridPoint, HasBox[T]):
     pos: GridPoint
     operator: T
 
-    # todo make common to all ContainsGridPoint
-    @classmethod
-    def new(cls, pos, operator) -> "Site[T]":
-        return cls(GridPointClass=type(pos), pos=pos, operator=operator)
-
     @property
     def boxed_value(self) -> T:
         return self.operator

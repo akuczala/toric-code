@@ -1,7 +1,9 @@
 from __future__ import annotations
+
+import itertools
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
-from typing import Tuple, List, Type
+from typing import Tuple, List, Type, TypeVar
 from enum import Enum
 
 from .utils import comma_separated_string
@@ -82,9 +84,19 @@ def make_grid_point_torus(*lengths: Tuple[int, ...]) -> GridPointTorus:
     )  # type: ignore
 
 
+G = TypeVar('G', bound='ContainsGridPoint')
+
+
 @dataclass(frozen=True)
 class ContainsGridPoint:
     GridPointClass: Type[GridPoint]
+
+    @classmethod
+    def new(cls: Type[G], *args, **kwargs) -> G:
+        grid_point_class = type(next(filter(
+            lambda v: isinstance(v, GridPoint), itertools.chain(args, kwargs.values())
+        )))
+        return cls(grid_point_class, *args, **kwargs)
 
     def __str__(self) -> str:
         arg_str = comma_separated_string((val for name, val in self.__dict__.items() if name != 'GridPointClass'))
