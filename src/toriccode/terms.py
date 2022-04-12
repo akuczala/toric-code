@@ -14,6 +14,12 @@ class Term:
     def boxed_operators(self) -> List[HasBox[Operator]]:
         pass
 
+    @staticmethod
+    def get_qubits(terms: List["Term"]) -> List[HasBox[None]]:
+        return list(set(
+            boxed.with_new_content(None) for term in terms for boxed in term.boxed_operators
+        ))
+
 
 @dataclass(frozen=True)
 class GenericTerm(Term):

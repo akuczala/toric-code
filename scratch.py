@@ -1,14 +1,11 @@
-import itertools
-from typing import Dict, List
-
 import scipy.linalg as lin
 
+from toriccode.build_hamiltonian import HamiltonianBuilder
 from toriccode.env import *
+from toriccode.ising_terms import SiteTerm, Site
 from toriccode.plot_utils import *
 from toriccode.toric_terms import Star, Plaquette
 from toriccode.terms import Term
-from toriccode.utils import tensor_product_flatten
-from toriccode.operators import Operator, PauliOperator
 
 GRID_POINT_CLASS = make_grid_point_torus(2, 2)
 
@@ -18,13 +15,6 @@ def test_stuff():
     plot_links(Star(GRID_POINT_CLASS.new(3, 3)).boxed_operators)
     plt.gca().set_aspect(1)
     plt.show()
-
-    def build_mini_H():
-        links = Plaquette(GRID_POINT_CLASS.zero).boxed_operators
-        return tensor_product_flatten((link.operator.matrix for link in links))
-
-    h = build_mini_H()
-    hamiltonian_plots()
 
 
 def plot_vec(vec, qubits):
@@ -48,22 +38,18 @@ def hamiltonian_plots(h, qubits):
     plt.title('vecs')
     plt.show()
 
-    for i in (1, 2, 3):
-        plot_vec(np.eye(h.shape[0])[i], qubits)
-        plt.title(str(qubits[i]))
-        plt.show()
-        pass
-    return
-    n_eigvec_terms = np.count_nonzero(~np.isclose(vecs, 0), axis=0)
-    small_vec_locations = np.arange(len(eigs), dtype=int)[n_eigvec_terms < 8]
-    for loc in small_vec_locations[:5]:
-        fig = plot_vec(vecs[:, loc], qubits)
-        fig.suptitle(eigs[loc])
-        plt.show()
-
-
-def build_H(qubit_terms: List[List[Operator]]) -> np.ndarray:
-    return sum(tensor_product_flatten([op.matrix for op in term]) for term in qubit_terms)  # type: ignore
+    # for i in (1, 2, 3):
+    #     plot_vec(np.eye(h.shape[0])[i], qubits)
+    #     plt.title(str(qubits[i]))
+    #     plt.show()
+    #     pass
+    # return
+    # n_eigvec_terms = np.count_nonzero(~np.isclose(vecs, 0), axis=0)
+    # small_vec_locations = np.arange(len(eigs), dtype=int)[n_eigvec_terms < 8]
+    # for loc in small_vec_locations[:5]:
+    #     fig = plot_vec(vecs[:, loc], qubits)
+    #     fig.suptitle(eigs[loc])
+    #     plt.show()
 
 
 def test_dependent_types():
@@ -74,40 +60,23 @@ def test_dependent_types():
     pass
 
 
-def get_qubit_operators(term: Term, qubit_to_index_map) -> Dict[int, Operator]:
-    # todo assert uniqueness on links in Term somewhere
-    return {qubit_to_index_map[link.with_new_content(None)]: link.boxed_value for link in term.boxed_operators}
+def get_toric_terms(n):  # hilbert space has dimension 2^(n^2)? #be careful with PBC
+
+    grid_point_class = make_grid_point_torus(2, 2)
+    star_terms = [Star.new(grid_point_class.new(i, j)) for i, j in itertools.product(range(n), range(n))]
+    plaquette_terms = [Plaquette.new(grid_point_class.new(i, j)) for i, j in itertools.product(range(n), range(n))]
+    return plaquette_terms  # excluding star for now
 
 
-def identity_pad_operators(n_qubits, qubit_index_operator_map: Dict[int, Operator]) -> Dict[int, Operator]:
-    return {
-        i: qubit_index_operator_map.get(
-            i,
-            PauliOperator.I  # type: ignore
-        ) for i in range(n_qubits)
-    }
-
-
-def operator_map_to_list(operator_map: Dict[int, Operator]) -> List[Operator]:
-    return [operator_map[i] for i in range(len(operator_map))]
+def get_ising_terms(n):  # hilbert space has dimension 2^(n^2)
+    grid_point_class = make_grid_point_torus(n, n)
+    site_terms = [SiteTerm(Site[Operator].new(grid_point_class.new(i, j), PauliOperator.Z)) for i, j in
+                  itertools.product(range(n), range(n))]
+    return site_terms
 
 
 def test_stuff2():
-    star_terms = [Star.new(GRID_POINT_CLASS.new(i, j)) for i, j in itertools.product([0, 1], [0, 1])]
-    plaquette_terms = [Plaquette.new(GRID_POINT_CLASS.new(i, j)) for i, j in itertools.product([0, 1], [0, 1])]
-    local_terms: List[Term] = plaquette_terms
-    qubits: List[Link[None]] = list(set(
-        link.with_new_content(None) for term in local_terms for link in term.boxed_operators
-    ))
-    # for i in range(254,256):
-    #     plot_qubit_basis_vector(qubits, i)
-    #     plt.show()
-
-    qubit_to_index_map = {qubit: i for i, qubit in enumerate(qubits)}
-    qubit_terms = [
-        operator_map_to_list(identity_pad_operators(len(qubits), get_qubit_operators(term, qubit_to_index_map)))
-        for term in local_terms
-    ]
+    local_terms = get_toric_terms(3)
 
     # plot_kwargs = {
     #     Star: dict(c='red', linestyle='--'),
@@ -119,8 +88,8 @@ def test_stuff2():
     # plt.gca().set_aspect(1)
     # plt.show()
 
-    h = build_H(qubit_terms)
-    hamiltonian_plots(h, qubits)
+    h = HamiltonianBuilder().build_matrix(local_terms)
+    hamiltonian_plots(h, Term.get_qubits(local_terms))
 
 
 test_stuff2()
