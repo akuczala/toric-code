@@ -1,4 +1,5 @@
 import itertools
+from typing import Dict, List
 
 import scipy.linalg as lin
 
@@ -14,12 +15,12 @@ GRID_POINT_CLASS = make_grid_point_torus(2, 2)
 
 def test_stuff():
     plot_links(Plaquette(GRID_POINT_CLASS.zero))
-    plot_links(Star(GRID_POINT_CLASS.new(3, 3)).links)
+    plot_links(Star(GRID_POINT_CLASS.new(3, 3)).boxed_operators)
     plt.gca().set_aspect(1)
     plt.show()
 
     def build_mini_H():
-        links = Plaquette(GRID_POINT_CLASS.zero).links
+        links = Plaquette(GRID_POINT_CLASS.zero).boxed_operators
         return tensor_product_flatten((link.operator.matrix for link in links))
 
     h = build_mini_H()
@@ -40,12 +41,14 @@ def plot_vec(vec, qubits):
 def hamiltonian_plots(h, qubits):
     plot_bwr(h)
     eigs, vecs = lin.eigh(h)
-    plt.plot(eigs, marker='o'); plt.title('ei(gs')
+    plt.plot(eigs, marker='o');
+    plt.title('ei(gs')
     plt.show()
-    plot_bwr(vecs, show=False); plt.title('vecs')
+    plot_bwr(vecs, show=False);
+    plt.title('vecs')
     plt.show()
 
-    for i in (1,2,3):
+    for i in (1, 2, 3):
         plot_vec(np.eye(h.shape[0])[i], qubits)
         plt.title(str(qubits[i]))
         plt.show()
@@ -54,13 +57,14 @@ def hamiltonian_plots(h, qubits):
     n_eigvec_terms = np.count_nonzero(~np.isclose(vecs, 0), axis=0)
     small_vec_locations = np.arange(len(eigs), dtype=int)[n_eigvec_terms < 8]
     for loc in small_vec_locations[:5]:
-        fig = plot_vec(vecs[:,loc], qubits)
+        fig = plot_vec(vecs[:, loc], qubits)
         fig.suptitle(eigs[loc])
         plt.show()
 
 
 def build_H(qubit_terms: List[List[Operator]]) -> np.ndarray:
     return sum(tensor_product_flatten([op.matrix for op in term]) for term in qubit_terms)  # type: ignore
+
 
 def test_dependent_types():
     GP3 = make_grid_point_torus([3, 3])
@@ -72,11 +76,16 @@ def test_dependent_types():
 
 def get_qubit_operators(term: Term, qubit_to_index_map) -> Dict[int, Operator]:
     # todo assert uniqueness on links in Term somewhere
-    return {qubit_to_index_map[link.with_new_content(None)]: link.operator for link in term.links}
+    return {qubit_to_index_map[link.with_new_content(None)]: link.boxed_value for link in term.boxed_operators}
 
 
 def identity_pad_operators(n_qubits, qubit_index_operator_map: Dict[int, Operator]) -> Dict[int, Operator]:
-    return {i: qubit_index_operator_map.get(i, PauliOperator.I) for i in range(n_qubits)}
+    return {
+        i: qubit_index_operator_map.get(
+            i,
+            PauliOperator.I  # type: ignore
+        ) for i in range(n_qubits)
+    }
 
 
 def operator_map_to_list(operator_map: Dict[int, Operator]) -> List[Operator]:
@@ -88,7 +97,7 @@ def test_stuff2():
     plaquette_terms = [Plaquette(GRID_POINT_CLASS.new(i, j)) for i, j in itertools.product([0, 1], [0, 1])]
     local_terms: List[Term] = plaquette_terms
     qubits: List[Link[None]] = list(set(
-        link.with_new_content(None) for term in local_terms for link in term.links
+        link.with_new_content(None) for term in local_terms for link in term.boxed_operators
     ))
     # for i in range(254,256):
     #     plot_qubit_basis_vector(qubits, i)

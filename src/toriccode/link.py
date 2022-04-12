@@ -1,29 +1,16 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Type, TypeVar, Generic, Tuple
+from typing import TypeVar, Tuple
 
-from .grid_point import GridPoint, Direction
-from .utils import comma_separated_string
-
-
-@dataclass(frozen=True)
-class ContainsGridPoint:
-    GridPointClass: Type[GridPoint]
-
-    def __str__(self) -> str:
-        arg_str = comma_separated_string((val for name, val in self.__dict__.items() if name != 'GridPointClass'))
-        return f"{type(self).__name__}({arg_str})"
-
-    def __repr__(self) -> str:
-        return str(self)
-
+from .box import HasBox
+from .grid_point import GridPoint, Direction, ContainsGridPoint
 
 T = TypeVar("T")
 S = TypeVar("S")
 
 
 @dataclass(frozen=True)
-class Link(ContainsGridPoint, Generic[T]):
+class Link(ContainsGridPoint, HasBox[T]):
     p0: GridPoint
     direction: Direction
     operator: T
@@ -32,6 +19,10 @@ class Link(ContainsGridPoint, Generic[T]):
     @classmethod
     def new(cls, p0, direction, operator) -> Link[T]:
         return cls(GridPointClass=type(p0), p0=p0, direction=direction, operator=operator)
+
+    @property
+    def boxed_value(self) -> T:
+        return self.operator
 
     @property
     def points(self) -> Tuple[GridPoint, GridPoint]:

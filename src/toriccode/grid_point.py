@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
-from typing import Tuple, List
+from typing import Tuple, List, Type
 from enum import Enum
 
 from .utils import comma_separated_string
@@ -80,3 +80,15 @@ def make_grid_point_torus(*lengths: Tuple[int, ...]) -> GridPointTorus:
         f"{GridPointTorus.__name__}" + "".join(str(length) for length in lengths),
         (GridPointTorus,), {'lengths': lengths}
     )  # type: ignore
+
+
+@dataclass(frozen=True)
+class ContainsGridPoint:
+    GridPointClass: Type[GridPoint]
+
+    def __str__(self) -> str:
+        arg_str = comma_separated_string((val for name, val in self.__dict__.items() if name != 'GridPointClass'))
+        return f"{type(self).__name__}({arg_str})"
+
+    def __repr__(self) -> str:
+        return str(self)

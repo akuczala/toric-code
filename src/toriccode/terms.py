@@ -2,26 +2,30 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from typing import List
 
-from toriccode.link import ContainsGridPoint, Link
+from toriccode.box import HasBox
+from toriccode.grid_point import ContainsGridPoint
 from toriccode.operators import Operator
 
 
-class Term(ContainsGridPoint):
+class Term:
 
     @property
     @abstractmethod
-    def links(self) -> List[Link[Operator]]:
+    def boxed_operators(self) -> List[HasBox[Operator]]:
         pass
 
 
 @dataclass(frozen=True, init=False)
 class GenericTerm(Term):
-    _links: List[Link[Operator]]
+    _boxed_operators: List[HasBox[Operator]]
 
-    def __init__(self, links: List[Link[Operator]]):
-        object.__setattr__(self, 'GridPointClass', type(p0))
-        object.__setattr__(self, '_links', links)
+    def __init__(self, boxed_operators: List[HasBox[Operator]]):
+        object.__setattr__(self, '_boxed_operators', boxed_operators)
 
     @property
-    def links(self) -> List[Link[Operator]]:
-        return self._links
+    def boxed_operators(self) -> List[HasBox[Operator]]:
+        return self._boxed_operators
+
+
+class LocalTerm(Term, ContainsGridPoint):
+    pass
