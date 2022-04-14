@@ -23,7 +23,7 @@ class Site(ContainsGridPoint, HasBox[T]):
 
 
 @dataclass(frozen=True)
-class IsingBond(LocalTerm):
+class IsingBond(Term):
     site_pair: Tuple[Site[Operator]]
 
     @property

@@ -56,7 +56,7 @@ def plot_qubit_basis_vector(qubits, basis_index, ax=None, **kwargs):
     plot_decorated_links([link.with_new_content({'c': color_map[i]}) for i, link in zip(site_basis_index, qubits)], plot_link_fn=plot_link_periodic, ax=ax, **kwargs)
 
 @ax_kwarg
-def plot_bwr(mat, ax=None, colorbar=True, show=True, cmap='bwr', **kwargs):
+def plot_bwr(mat, ax=None, colorbar=False, show=False, cmap='bwr', **kwargs):
     vmax = np.max(np.abs(mat))
     out = ax.matshow(mat, vmax=vmax, vmin=-vmax, cmap=cmap, **kwargs)
     if colorbar:

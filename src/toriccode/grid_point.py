@@ -3,7 +3,7 @@ from __future__ import annotations
 import itertools
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
-from typing import Tuple, List, Type, TypeVar
+from typing import Tuple, List, Type, TypeVar, Iterable
 from enum import Enum
 
 from .utils import comma_separated_string
@@ -76,6 +76,9 @@ class GridPointTorus(GridPoint):
     def __add__(self, other) -> GridPoint:
         return type(self)(tuple((s + o) % length for s, o, length in zip(self, other, self.lengths)))
 
+    @classmethod
+    def get_site_iterator(cls) -> Iterable[GridPoint]:
+        return (cls(tup) for tup in itertools.product(*(range(n) for n in cls.lengths)))
 
 def make_grid_point_torus(*lengths: int) -> GridPointTorus:
     return type(

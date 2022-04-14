@@ -5,7 +5,7 @@ from numpy import ndarray
 
 from toriccode.operators import Operator, PauliOperator
 from toriccode.terms import Term
-from toriccode.utils import tensor_product_flatten
+from toriccode.utils import tensor_product_flatten_sparse
 
 
 class HamiltonianBuilder:
@@ -14,12 +14,14 @@ class HamiltonianBuilder:
 
     @classmethod
     def build_matrix(cls, local_terms: List[Term]):
+        print("Collecting qubits")
         qubits = Term.get_qubits(local_terms)
         # for i in range(254,256):
         #     plot_qubit_basis_vector(qubits, i)
         #     plt.show()
 
         qubit_to_index_map = {qubit: i for i, qubit in enumerate(qubits)}
+        print("Padding operators")
         qubit_terms = [
             operator_map_to_list(cls.identity_pad_operators(len(qubits), cls.get_qubit_operators(term, qubit_to_index_map)))
             for term in local_terms
@@ -28,7 +30,8 @@ class HamiltonianBuilder:
 
     @staticmethod
     def _build_matrix(qubit_terms: List[List[Operator]]) -> ndarray:
-        return sum(tensor_product_flatten([op.matrix for op in term]) for term in qubit_terms)  # type: ignore
+        print("tensor producting")
+        return sum(tensor_product_flatten_sparse([op.matrix for op in term]) for term in qubit_terms)  # type: ignore
 
     @staticmethod
     def get_qubit_operators(term: Term, qubit_to_index_map) -> Dict[int, Operator]:
