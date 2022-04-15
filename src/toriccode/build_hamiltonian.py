@@ -9,29 +9,30 @@ from toriccode.utils import tensor_product_flatten_sparse
 
 
 class HamiltonianBuilder:
-    def __init__(self):
-        pass
+    def __init__(self, verbose=False):
+        self.verbose = verbose
 
-    @classmethod
-    def build_matrix(cls, local_terms: List[Term]):
+    def build_matrix(self, local_terms: List[Term], coefs: List[float]):
         print("Collecting qubits")
         qubits = Term.get_qubits(local_terms)
         # for i in range(254,256):
-        #     plot_qubit_basis_vector(qubits, i)
+        #     plot_qubit_links_basis_vector(qubits, i)
         #     plt.show()
 
         qubit_to_index_map = {qubit: i for i, qubit in enumerate(qubits)}
         print("Padding operators")
         qubit_terms = [
-            operator_map_to_list(cls.identity_pad_operators(len(qubits), cls.get_qubit_operators(term, qubit_to_index_map)))
+            operator_map_to_list(self.identity_pad_operators(len(qubits), self.get_qubit_operators(term, qubit_to_index_map)))
             for term in local_terms
         ]
-        return cls._build_matrix(qubit_terms)
+        return self._build_matrix(qubit_terms, coefs)
 
-    @staticmethod
-    def _build_matrix(qubit_terms: List[List[Operator]]) -> ndarray:
+    def _build_matrix(self, qubit_terms: List[List[Operator]], coefs: List[float]) -> ndarray:
         print("tensor producting")
-        return sum(tensor_product_flatten_sparse([op.matrix for op in term]) for term in qubit_terms)  # type: ignore
+        return sum(
+            coef * tensor_product_flatten_sparse([op.matrix for op in term], verbose=self.verbose)
+            for coef, term in zip(coefs, qubit_terms)
+        )  # type: ignore
 
     @staticmethod
     def get_qubit_operators(term: Term, qubit_to_index_map) -> Dict[int, Operator]:
