@@ -71,25 +71,28 @@ def plot_vec_links(vec, qubits):
     return fig
 
 
-def plot_vec_sites(vec, qubits, max_terms:int=32):
+def plot_vec_sites(vec, qubits, max_terms:int=32, threshold=1e-6):
     n_nonzero = np.count_nonzero(~np.isclose(vec, 0))
-    n_plots = min(1 + n_nonzero, max_terms)
+    n_plots = min(n_nonzero, max_terms)
+    print(f"Plotting {n_plots} of {n_nonzero} components above threshold")
     subplots_shape = nearest_bounding_rectangle(n_plots)
-    fig, axes = plt.subplots(*subplots_shape, figsize=(2 * subplots_shape[0], 2 * subplots_shape[1]))
-    ax_iter = iter(axes.ravel()) if n_plots > 1 else iter([axes])
-    ax = next(ax_iter)
-    nonzero_amplitudes = np.array([v for v in vec if not np.isclose(v, 0)])[:n_plots]
+    fig1 = plt.figure()
+
+    nonzero_amplitudes = np.array([v for v in vec if np.abs(v) > threshold])[:n_plots]
     amplitude_grid_shape = nearest_bounding_rectangle(len(nonzero_amplitudes))
-    amplitude_grid = np.empty(amplitude_grid_shape).ravel()
+    amplitude_grid = np.zeros(amplitude_grid_shape).ravel()
     amplitude_grid[:n_plots] = nonzero_amplitudes
     amplitude_grid = amplitude_grid.reshape(amplitude_grid_shape)
-    plot_bwr(amplitude_grid, ax=ax)
-    for j, (i, component) in enumerate([(i, v) for i, v in enumerate(vec) if not np.isclose(v, 0)][:n_plots - 1]):
+    plot_bwr(amplitude_grid, ax=plt.gca())
+
+    fig2, axes = plt.subplots(*subplots_shape, figsize=(2 * subplots_shape[0], 2 * subplots_shape[1]))
+    ax_iter = iter(axes.ravel()) if n_plots > 1 else iter([axes])
+    for j, (i, component) in enumerate([(i, v) for i, v in enumerate(vec) if np.abs(v) > threshold][:n_plots]):
         if j < n_plots:
             ax = next(ax_iter)
             plot_bwr(make_site_grid_basis_vector(qubits, i), ax=ax)
             ax.set_title(f"{component:0.3f}")
-    return fig
+    return fig1, fig2
 
 @ax_kwarg
 def plot_bwr(mat, ax=None, colorbar=False, show=False, cmap='bwr', **kwargs):
@@ -113,3 +116,7 @@ def plot_hamiltonian_scatter(h, max_pts=5000, ax=None, **kwargs):
     )
     ax.set_aspect(1)
     return out
+
+@ax_kwarg
+def plot_hamiltonian_matrix(h, ax=None, **kwargs):
+    return plot_bwr(h.toarray(), ax=ax, **kwargs) if h.shape[0] < 1000 else plot_hamiltonian_scatter(h, ax=ax, **kwargs)

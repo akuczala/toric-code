@@ -1,6 +1,6 @@
 import itertools
 from functools import reduce
-from typing import List, Tuple
+from typing import List, Tuple, Iterable
 
 import numpy as np
 
@@ -36,8 +36,8 @@ def make_site_grid_basis_vector(qubits: "List[Site[None]]", basis_index: int) ->
     return grid
 
 
-def int_to_bit_list(n_bits: int, val: int) -> List[int]:
-    return list(map(int, format(val, f'0{n_bits}b')))
+def int_to_bit_list(n_bits: int, val: int) -> Iterable[int]:
+    return np.fromiter(map(int, format(val, f'0{n_bits}b')), count=n_bits, dtype=int)
 
 
 def nearest_bounding_rectangle(n: int) -> Tuple[int, int]:

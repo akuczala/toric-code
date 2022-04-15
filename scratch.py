@@ -24,20 +24,14 @@ def test_stuff():
 
 
 def calc_eigs(h, n_eigs=3, max_dense=1000):
-    print("computing eigs")
-    if h.shape[0] < max_dense:
-        return lin.eigh(h.toarray())
-    else:
-        return slin.eigsh(h.tocsc(), n_eigs)
+    eigs, vecs = lin.eigh(h.toarray()) if  h.shape[0] < max_dense else slin.eigsh(h.tocsc(), n_eigs)
+    return (lambda argsort: (eigs[argsort], vecs[:, argsort]))(np.argsort(eigs))
 
 
 def hamiltonian_plots(h: coo_array, qubits, n_eigs=3):
     fig, axes = plt.subplots(1, 3, figsize=(8, 4))
     axes = axes.ravel()
-    if h.shape[0] < 1000:
-        plot_bwr(h.toarray(), ax=axes[0])
-    else:
-        plot_hamiltonian_scatter(h, ax=axes[0])
+    plot_hamiltonian_matrix(h, axes[0])
 
     eigs, vecs = calc_eigs(h, n_eigs)
 
@@ -88,13 +82,14 @@ def get_ising_terms(n) -> Tuple[List[Term], List[float]]:  # hilbert space has d
     # there is some bond doubling here perhaps due to PBC
     bond_terms = [
         IsingBond(site_pair=(
-            Site[Operator].new(pos=point, operator=PauliOperator.Z),
-            Site[Operator].new(pos=point + dp, operator=PauliOperator.Z),
+            Site[Operator].new(pos=point, operator=PauliOperator.X),
+            Site[Operator].new(pos=point + dp, operator=PauliOperator.X),
         ))
         for point in grid_point_class.get_site_iterator()
         for dp in (grid_point_class.unit(dir_) for dir_ in (Direction.HORIZONTAL, Direction.VERTICAL))
     ]
-    return bond_terms + site_terms, ([-1.0] * len(bond_terms)) + ([1.0] * len(site_terms))
+    #return bond_terms + site_terms, ([-1.0] * len(bond_terms)) + ([1.0] * len(site_terms))
+    return bond_terms, ([-1.0] * len(bond_terms))
 
 
 def test_stuff2(n_eig_plots):
