@@ -2,6 +2,7 @@ from typing import List, Dict, Any
 
 import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib.colors import hsv_to_rgb
 
 from toriccode.ising_terms import Site, make_site_grid_basis_vector
 from toriccode.link import Link
@@ -61,7 +62,8 @@ def plot_qubit_links_basis_vector(qubits, basis_index, ax=None, **kwargs):
                          plot_link_fn=plot_link_periodic, ax=ax, **kwargs)
 
 
-def plot_vec(vec, qubits, max_terms:int=36, threshold=1e-6):
+def plot_vec(vec, qubits, max_terms: int = 36, threshold=1e-6, sort=True):
+    vec = vec[np.argsort(np.abs(vec))[::-1]]
     n_above_threshold = np.count_nonzero(np.abs(vec) > threshold)
     n_plots = min(n_above_threshold, max_terms)
     print(f"Plotting {n_plots} of {n_above_threshold} components above threshold")
@@ -70,10 +72,10 @@ def plot_vec(vec, qubits, max_terms:int=36, threshold=1e-6):
 
     nonzero_amplitudes = np.array([v for v in vec if np.abs(v) > threshold])[:n_plots]
     amplitude_grid_shape = nearest_bounding_rectangle(len(nonzero_amplitudes))
-    amplitude_grid = np.zeros(amplitude_grid_shape).ravel()
+    amplitude_grid = np.zeros(amplitude_grid_shape, dtype=complex).ravel()
     amplitude_grid[:n_plots] = nonzero_amplitudes
     amplitude_grid = amplitude_grid.reshape(amplitude_grid_shape)
-    plot_bwr(amplitude_grid, ax=plt.gca())
+    plot_complex(amplitude_grid, ax=plt.gca())
 
     fig2, axes = plt.subplots(*subplots_shape, figsize=(2 * subplots_shape[0], 2 * subplots_shape[1]))
     ax_iter = iter(axes.ravel()) if n_plots > 1 else iter([axes])
@@ -88,8 +90,9 @@ def plot_vec(vec, qubits, max_terms:int=36, threshold=1e-6):
                     ax.set_aspect(1)
             ax.axes.xaxis.set_visible(False)
             ax.axes.yaxis.set_visible(False)
-            ax.set_title(f"{component:0.3f}")
+            ax.set_title(f"{component:.3f}")
     return fig1, fig2
+
 
 @ax_kwarg
 def plot_bwr(mat, ax=None, colorbar=False, show=False, cmap='bwr', **kwargs):
@@ -101,19 +104,57 @@ def plot_bwr(mat, ax=None, colorbar=False, show=False, cmap='bwr', **kwargs):
         plt.show()
     return out
 
+
+@ax_kwarg
+def plot_complex(mat, ax=None, colorbar=False, show=False, cmap='bwr', **kwargs):
+    out = ax.imshow(complex_array_to_rgb(mat))
+    if colorbar:
+        plt.colorbar(out)
+    if show:
+        plt.show()
+    return out
+
+
+def complex_to_hsv(z, logscale=False):
+    r = np.abs(z)
+    print(np.nanmax(r))
+    r_is_zero = np.isclose(r, 0)
+    if np.all(r_is_zero):
+        return np.tensordot(np.ones_like(r), np.array([1., 0, 1]), axes=0)
+    if logscale:
+        r = np.log(r)
+        r = r - np.nanmin(r[~r_is_zero])
+        r = r / np.nanmax(r)
+    else:
+        r = r / np.nanmax(r)
+    r[r_is_zero] = 0
+    arg = (np.angle(z) / np.pi + 1) / 2
+    value = np.ones_like(r)
+    arg[np.isnan(r)] = 0
+    value[np.isnan(r)] = 0
+    out = np.stack((arg, r, value), axis=-1)
+    return out
+
+
+def complex_array_to_rgb(arr, **kwargs):
+    return hsv_to_rgb(complex_to_hsv(arr, **kwargs)).transpose([1, 0, 2])
+
+
 @ax_kwarg
 def plot_hamiltonian_scatter(h, max_pts=5000, ax=None, **kwargs):
     i, j = h.nonzero()
     rnd_subset = np.arange(h.count_nonzero())
     np.random.shuffle(rnd_subset)
     rnd_subset = rnd_subset[:max_pts]
+    colors = [complex_to_hsv(z) for z in h.data]
     out = ax.scatter(
-        **{kw: arr[rnd_subset] for kw, arr in {'x': i, 'y': j, 'c': h.data}.items()},
-        cmap='bwr', s=0.5
+        **{kw: arr[rnd_subset] for kw, arr in {'x': i, 'y': j, 'c': colors}.items()},
+        s=0.5
     )
     ax.set_aspect(1)
     return out
 
+
 @ax_kwarg
 def plot_hamiltonian_matrix(h, ax=None, **kwargs):
-    return plot_bwr(h.toarray(), ax=ax, **kwargs) if h.shape[0] < 1000 else plot_hamiltonian_scatter(h, ax=ax, **kwargs)
+    return plot_complex(h.toarray(), ax=ax, **kwargs) if h.shape[0] < 1000 else plot_hamiltonian_scatter(h, ax=ax, **kwargs)

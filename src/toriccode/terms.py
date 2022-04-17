@@ -23,12 +23,12 @@ class Term:
         pass
 
     @staticmethod
-    def get_qubits(terms: List["Term"]) -> List[HasBox[None]]:
+    def get_qubits(terms: List["Term"]) -> List[Qubit]:
         return list(set(
             boxed.with_new_content(None) for term in terms for boxed in term.boxed_operators
         ))
 
-    def generate_matrix(self, qubits: Dict[HasBox[None], int], verbose=False) -> coo_array:
+    def generate_matrix(self, qubits: Dict[Qubit, int], verbose=False) -> coo_array:
         operators = operator_map_to_list(
             self.identity_pad_operators(len(qubits), self.get_qubit_operators(qubits)))
         return tensor_product_flatten_sparse([op.matrix for op in operators], verbose=verbose)

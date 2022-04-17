@@ -27,7 +27,7 @@ class Site(ContainsGridPoint, HasBox[_T]):
 
 
 @dataclass(frozen=True)
-class IsingBond(Term):
+class BondTerm(Term):
     site_pair: Tuple[Site[Operator], Site[Operator]]
 
     @property
@@ -53,7 +53,7 @@ def get_site_terms(grid_point_class, operator: Operator):
 
 def get_bond_terms(grid_point_class, operator: Operator):
     return [
-        IsingBond(site_pair=(
+        BondTerm(site_pair=(
             Site[Operator].new(pos=point, operator=operator),
             Site[Operator].new(pos=point + dp, operator=operator),
         ))

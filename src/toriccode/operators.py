@@ -6,9 +6,10 @@ import numpy as np
 
 
 class Pauli(Enum):
-    Z = 'Z'
-    X = 'X'
     I = 'I'
+    X = 'X'
+    Y = 'Y'
+    Z = 'Z'
 
     @property
     def matrix(self):
@@ -19,9 +20,11 @@ class Pauli(Enum):
 
 
 PAULI_MATRICES = {
-    Pauli.Z: np.array([[1, 0], [0, -1]]),
+    Pauli.I: np.eye(2),
     Pauli.X: np.array([[0, 1], [1, 0]]),
-    Pauli.I: np.eye(2)
+    Pauli.Y: np.array([[0, -1j], [1j, 0]]),
+    Pauli.Z: np.array([[1, 0], [0, -1]]),
+
 }
 
 
@@ -51,6 +54,11 @@ class PauliOperator(Operator):
     @property
     def X(cls) -> "PauliOperator":
         return cls(Pauli.X)
+
+    @classmethod
+    @property
+    def Y(cls) -> "PauliOperator":
+        return cls(Pauli.Y)
 
     @classmethod
     @property
