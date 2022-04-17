@@ -58,8 +58,8 @@ def get_bond_terms(grid_point_class, operator: Operator):
     ]
 
 
-def get_ising_terms(n) -> Tuple[List[Term], List[float]]:  # hilbert space has dimension 2^(n^2)
+def get_ising_terms(n: int, g: float) -> Tuple[List[Term], List[float]]:  # hilbert space has dimension 2^(n^2)
     grid_point_class = make_grid_point_torus(n, n)
     site_terms = get_site_terms(grid_point_class, PauliOperator.X)
     bond_terms = get_bond_terms(grid_point_class, PauliOperator.Z)
-    return bond_terms + site_terms, ([-1.0] * len(bond_terms)) + ([1.0] * len(site_terms))
+    return bond_terms + site_terms, ([-1.0] * len(bond_terms)) + ([g] * len(site_terms))
