@@ -8,6 +8,7 @@ from scipy.sparse import coo_array
 
 from toriccode.build_hamiltonian import HamiltonianBuilder
 from toriccode.env import *
+from toriccode.hamiltonian import Hamiltonian
 from toriccode.ising_terms import SiteTerm, Site, IsingBond
 from toriccode.plot_utils import *
 from toriccode.toric_terms import Star, Plaquette
@@ -22,18 +23,12 @@ def test_stuff():
     plt.gca().set_aspect(1)
     plt.show()
 
-
-def calc_eigs(h, n_eigs=3, max_dense=1000):
-    eigs, vecs = lin.eigh(h.toarray()) if  h.shape[0] < max_dense else slin.eigsh(h.tocsc(), n_eigs)
-    return (lambda argsort: (eigs[argsort], vecs[:, argsort]))(np.argsort(eigs))
-
-
-def hamiltonian_plots(h: coo_array, qubits, n_eigs=3):
+def hamiltonian_plots(h: Hamiltonian, n_eigs=3):
     fig, axes = plt.subplots(1, 3, figsize=(8, 4))
     axes = axes.ravel()
-    plot_hamiltonian_matrix(h, axes[0])
+    plot_hamiltonian_matrix(h.matrix, ax=axes[0])
 
-    eigs, vecs = calc_eigs(h, n_eigs)
+    eigs, vecs = h.calc_eigs(n_eigs)
 
     axes[1].plot(eigs, marker='o')
     axes[1].set_title('eigs')
@@ -66,55 +61,19 @@ def test_dependent_types():
     gp2 = GP2.zero
     pass
 
-
-def get_toric_terms(n) -> List[Term]:  # hilbert space has dimension 2^(2 n^2) #be careful with PBC
-
-    grid_point_class = make_grid_point_torus(n, n)
-    star_terms = [Star.new(grid_point_class.new(i, j)) for i, j in itertools.product(range(n), range(n))]
-    plaquette_terms = [Plaquette.new(grid_point_class.new(i, j)) for i, j in itertools.product(range(n), range(n))]
-    return star_terms
-
-
-def get_ising_terms(n) -> Tuple[List[Term], List[float]]:  # hilbert space has dimension 2^(n^2)
-    grid_point_class = make_grid_point_torus(n, n)
-    site_terms = [SiteTerm(Site[Operator].new(point, PauliOperator.X)) for point in
-                  grid_point_class.get_site_iterator()]
-    # there is some bond doubling here perhaps due to PBC
-    bond_terms = [
-        IsingBond(site_pair=(
-            Site[Operator].new(pos=point, operator=PauliOperator.X),
-            Site[Operator].new(pos=point + dp, operator=PauliOperator.X),
-        ))
-        for point in grid_point_class.get_site_iterator()
-        for dp in (grid_point_class.unit(dir_) for dir_ in (Direction.HORIZONTAL, Direction.VERTICAL))
-    ]
-    #return bond_terms + site_terms, ([-1.0] * len(bond_terms)) + ([1.0] * len(site_terms))
-    return bond_terms, ([-1.0] * len(bond_terms))
-
-
 def test_stuff2(n_eig_plots):
     print("Building local terms")
     local_terms, coefs = get_ising_terms(3)
 
-    # plot_kwargs = {
-    #     Star: dict(c='red', linestyle='--'),
-    #     Plaquette: dict(c='lime', linestyle='dotted')
-    # }
-    #
-    # for term in local_terms:
-    #     plot_links(term, plot_link_fn=plot_link_periodic, **plot_kwargs[type(term)])
-    # plt.gca().set_aspect(1)
-    # plt.show()
-    h = HamiltonianBuilder(verbose=False).build_matrix(local_terms, coefs)
+    h = HamiltonianBuilder(verbose=False).build(local_terms, coefs)
 
-    qubits = Term.get_qubits(local_terms)
-    hamiltonian_plots(h, Term.get_qubits(local_terms), n_eigs=50)
-    eigs, vecs = calc_eigs(h, 1000)
+    hamiltonian_plots(h, n_eigs=50)
+    eigs, vecs = h.calc_eigs(h, 1000)
     eigs, vecs = (lambda argsort: (eigs[argsort], vecs[:, argsort]))(np.argsort(eigs))
     for i in range(n_eig_plots):
-        fig = plot_vec_sites(vecs[:, i], qubits, max_terms=64)
+        fig1, fig2 = plot_vec(vecs[:, i], h.qubits, max_terms=64)
         #fig.suptitle(f"{eigs[i]:0.3f}")
-        fig.axes[0].set_title(f"{eigs[i]:0.3f}")
+        fig2.axes[0].set_title(f"{eigs[i]:0.3f}")
         plt.tight_layout()
         plt.show()
 

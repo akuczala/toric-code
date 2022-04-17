@@ -1,6 +1,6 @@
-import itertools
+from collections import OrderedDict
 from functools import reduce
-from typing import List, Tuple, Iterable
+from typing import List, Tuple, Iterable, TypeVar
 
 import numpy as np
 
@@ -48,6 +48,14 @@ def nearest_bounding_rectangle(n: int) -> Tuple[int, int]:
     else:
         assert (rt + 1) * factor >= rt * (factor + 1)
         return rt + 1, factor
+
+
+_T = TypeVar('_T')
+
+
+# ordered to encourage deterministic qubit order given a list of terms
+def list_inverse_map(ls: List[_T]) -> OrderedDict[_T, int]:
+    return OrderedDict(((v, i) for i, v in enumerate(ls)))
 
 
 class PrintDataclassMixin:

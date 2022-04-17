@@ -17,6 +17,7 @@ class Pauli(Enum):
     def __str__(self):
         return self.value
 
+
 PAULI_MATRICES = {
     Pauli.Z: np.array([[1, 0], [0, -1]]),
     Pauli.X: np.array([[0, 1], [1, 0]]),
@@ -58,3 +59,6 @@ class PauliOperator(Operator):
 
     def __str__(self):
         return str(self.pauli)
+
+
+OPERATOR_IDENTITY = PauliOperator.I

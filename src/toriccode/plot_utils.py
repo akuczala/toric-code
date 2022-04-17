@@ -1,8 +1,9 @@
-from typing import Union, List, Dict, Any
+from typing import List, Dict, Any
 
 import numpy as np
 from matplotlib import pyplot as plt
 
+from toriccode.ising_terms import Site
 from toriccode.link import Link
 from toriccode.utils import int_to_bit_list, make_site_grid_basis_vector, nearest_bounding_rectangle
 
@@ -60,21 +61,10 @@ def plot_qubit_links_basis_vector(qubits, basis_index, ax=None, **kwargs):
                          plot_link_fn=plot_link_periodic, ax=ax, **kwargs)
 
 
-def plot_vec_links(vec, qubits):
-    n_nonzero = np.count_nonzero(~np.isclose(vec, 0))
-    fig, axes = plt.subplots(1, n_nonzero, figsize=(5 * max(n_nonzero, 10), 5))
-    ax_iter = iter(axes.ravel()) if n_nonzero > 1 else iter([axes])
-    for i, component in enumerate(vec):
-        if not np.isclose(component, 0):
-            ax = next(ax_iter)
-            plot_qubit_links_basis_vector(qubits, i, ax=ax)
-    return fig
-
-
-def plot_vec_sites(vec, qubits, max_terms:int=32, threshold=1e-6):
-    n_nonzero = np.count_nonzero(~np.isclose(vec, 0))
-    n_plots = min(n_nonzero, max_terms)
-    print(f"Plotting {n_plots} of {n_nonzero} components above threshold")
+def plot_vec(vec, qubits, max_terms:int=36, threshold=1e-6):
+    n_above_threshold = np.count_nonzero(np.abs(vec) > threshold)
+    n_plots = min(n_above_threshold, max_terms)
+    print(f"Plotting {n_plots} of {n_above_threshold} components above threshold")
     subplots_shape = nearest_bounding_rectangle(n_plots)
     fig1 = plt.figure()
 
@@ -90,7 +80,14 @@ def plot_vec_sites(vec, qubits, max_terms:int=32, threshold=1e-6):
     for j, (i, component) in enumerate([(i, v) for i, v in enumerate(vec) if np.abs(v) > threshold][:n_plots]):
         if j < n_plots:
             ax = next(ax_iter)
-            plot_bwr(make_site_grid_basis_vector(qubits, i), ax=ax)
+            match qubits[0]:
+                case Site():
+                    plot_bwr(make_site_grid_basis_vector(qubits, i), ax=ax)
+                case Link():
+                    plot_qubit_links_basis_vector(qubits, i, ax=ax)
+                    ax.set_aspect(1)
+                    ax.axes.xaxis.set_visible(False)
+                    ax.axes.yaxis.set_visible(False)
             ax.set_title(f"{component:0.3f}")
     return fig1, fig2
 
