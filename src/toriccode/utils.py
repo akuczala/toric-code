@@ -12,7 +12,7 @@ def tensor_product_flatten(mats):
         lambda x, y: np.tensordot(x, y, axes=0).transpose(1, 2, 0, 3).reshape(x.shape[0] * y.shape[0], -1), mats)
 
 
-def tensor_product_flatten_sparse(mats, verbose=False):
+def tensor_product_flatten_sparse(mats, verbose=False) -> sparse.coo_array:
     def kron(a, b):
         if verbose:
             print(f"{a.shape}, {b.shape}")
@@ -25,15 +25,6 @@ def comma_separated_string(iterable):
     return ''.join(
         f"{str(value)}, " for value in iterable
     )[:-2]
-
-
-def make_site_grid_basis_vector(qubits: "List[Site[None]]", basis_index: int) -> np.ndarray:
-    site_basis_index = int_to_bit_list(len(qubits), basis_index)
-    grid_shape = qubits[0].GridPointClass.lengths
-    grid = np.empty(grid_shape)
-    for i, qubit in zip(site_basis_index, qubits):
-        grid[qubit.pos[0], qubit.pos[1]] = 2 * i - 1
-    return grid
 
 
 def int_to_bit_list(n_bits: int, val: int) -> Iterable[int]:

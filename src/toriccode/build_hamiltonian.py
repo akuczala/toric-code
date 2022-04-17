@@ -1,7 +1,8 @@
-from typing import List
+from typing import List, Dict
 
 from scipy import sparse
 
+from qubit import Qubit
 from toriccode.hamiltonian import Hamiltonian
 from toriccode.terms import Term
 from toriccode.utils import list_inverse_map
@@ -12,13 +13,15 @@ class HamiltonianBuilder:
         self.verbose = verbose
 
     def build(self, local_terms: List[Term], coefs: List[float]) -> Hamiltonian:
-        return Hamiltonian(self.build_matrix(local_terms, coefs), local_terms, coefs)
-
-    def build_matrix(self, local_terms: List[Term], coefs: List[float]) -> sparse.coo_matrix:
-        qubit_to_index_map = list_inverse_map(Term.get_qubits(local_terms))
+        qubits = list_inverse_map(Term.get_qubits(local_terms))
 
         print("padding + tensor producting")
+        matrix = self._build_matrix(qubits, local_terms, coefs)
+        return Hamiltonian(qubits, local_terms, coefs, matrix)
+
+    def _build_matrix(self, qubits: Dict[Qubit, int], local_terms: List[Term],
+                      coefs: List[float]) -> sparse.coo_matrix:
         return sum(
-            coef * term.generate_matrix(qubit_to_index_map, verbose=self.verbose)
+            coef * term.generate_matrix(qubits, verbose=self.verbose)
             for coef, term in zip(coefs, local_terms)
         )

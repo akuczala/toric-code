@@ -9,17 +9,13 @@ from scipy.sparse import coo_array
 from toriccode.build_hamiltonian import HamiltonianBuilder
 from toriccode.env import *
 from toriccode.hamiltonian import Hamiltonian
-from toriccode.ising_terms import SiteTerm, Site, IsingBond
 from toriccode.plot_utils import *
 from toriccode.toric_terms import Star, Plaquette
-from toriccode.terms import Term
-from toriccode.utils import make_site_grid_basis_vector
-
 
 def test_stuff():
     grid_point_class = make_grid_point_torus(2, 2)
-    plot_links(Plaquette(grid_point_class.zero))
-    plot_links(Star(grid_point_class.new(3, 3)).boxed_operators)
+    plot_links(Plaquette.new(grid_point_class.zero))
+    plot_links(Star.new(grid_point_class.new(3, 3)).boxed_operators)
     plt.gca().set_aspect(1)
     plt.show()
 
@@ -55,15 +51,15 @@ def hamiltonian_plots(h: Hamiltonian, n_eigs=3):
 
 
 def test_dependent_types():
-    GP3 = make_grid_point_torus([3, 3])
-    GP2 = GP = make_grid_point_torus([2, 2])
+    GP3 = make_grid_point_torus(3, 3)
+    GP2 = GP = make_grid_point_torus(2, 2)
     gp3 = GP3.zero + GP3.new(4, 2)
     gp2 = GP2.zero
     pass
 
 def test_stuff2(n_eig_plots):
     print("Building local terms")
-    local_terms, coefs = get_ising_terms(3)
+    local_terms, coefs = get_ising_terms(3, 1.0)
 
     h = HamiltonianBuilder(verbose=False).build(local_terms, coefs)
 

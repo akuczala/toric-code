@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Tuple
 
 from toriccode.box import HasBox
 from toriccode.grid_point import GridPoint, H, V, make_grid_point_torus
@@ -46,7 +46,9 @@ def get_plaquette_terms(grid_point_class):
     return [Plaquette.new(pos) for pos in grid_point_class.get_site_iterator()]
 
 
-def get_toric_terms(n) -> List[Term]:  # hilbert space has dimension 2^(2 n^2) #be careful with PBC
+def get_toric_terms(n) -> Tuple[List[Term], List[float]]:  # hilbert space has dimension 2^(2 n^2) #be careful with PBC
 
     grid_point_class = make_grid_point_torus(n, n)
-    return get_star_terms(grid_point_class) + get_plaquette_terms(grid_point_class)
+    terms = get_star_terms(grid_point_class) + get_plaquette_terms(grid_point_class)
+    coefs = [-1.0] * len(terms)
+    return terms, coefs

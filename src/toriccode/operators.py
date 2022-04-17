@@ -44,17 +44,17 @@ class PauliOperator(Operator):
     # some metaprogramming here to autofill?
     @classmethod
     @property
-    def Z(cls):
+    def Z(cls) -> "PauliOperator":
         return cls(Pauli.Z)
 
     @classmethod
     @property
-    def X(cls):
+    def X(cls) -> "PauliOperator":
         return cls(Pauli.X)
 
     @classmethod
     @property
-    def I(cls):
+    def I(cls) -> "PauliOperator":
         return cls(Pauli.I)
 
     def __str__(self):

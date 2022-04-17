@@ -3,9 +3,9 @@ from typing import List, Dict, Any
 import numpy as np
 from matplotlib import pyplot as plt
 
-from toriccode.ising_terms import Site
+from toriccode.ising_terms import Site, make_site_grid_basis_vector
 from toriccode.link import Link
-from toriccode.utils import int_to_bit_list, make_site_grid_basis_vector, nearest_bounding_rectangle
+from toriccode.utils import int_to_bit_list, nearest_bounding_rectangle
 
 
 def ax_kwarg(f):
@@ -80,14 +80,14 @@ def plot_vec(vec, qubits, max_terms:int=36, threshold=1e-6):
     for j, (i, component) in enumerate([(i, v) for i, v in enumerate(vec) if np.abs(v) > threshold][:n_plots]):
         if j < n_plots:
             ax = next(ax_iter)
-            match qubits[0]:
+            match next(iter(qubits.keys())):
                 case Site():
                     plot_bwr(make_site_grid_basis_vector(qubits, i), ax=ax)
                 case Link():
                     plot_qubit_links_basis_vector(qubits, i, ax=ax)
                     ax.set_aspect(1)
-                    ax.axes.xaxis.set_visible(False)
-                    ax.axes.yaxis.set_visible(False)
+            ax.axes.xaxis.set_visible(False)
+            ax.axes.yaxis.set_visible(False)
             ax.set_title(f"{component:0.3f}")
     return fig1, fig2
 

@@ -2,21 +2,21 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 
-T = TypeVar('T')
-S = TypeVar('S')
+_T = TypeVar('_T')
+_S = TypeVar('_S')
 
 
 @dataclass
-class Box(Generic[T]):
-    value: T
+class Box(Generic[_T]):
+    value: _T
 
 
-class HasBox(Generic[T]):
+class HasBox(Generic[_T]):
     @property
     @abstractmethod
-    def boxed_value(self) -> T:
+    def boxed_value(self) -> _T:
         pass
 
     @abstractmethod
-    def with_new_content(self, value: S) -> "HasBox[S]":
+    def with_new_content(self, value: _S) -> "HasBox[_S]":
         pass

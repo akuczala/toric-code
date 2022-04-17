@@ -1,19 +1,20 @@
-from typing import List
+from typing import List, Dict
 
 import numpy as np
 import scipy.linalg as lin
 import scipy.sparse.linalg as slin
 from scipy import sparse
 
+from qubit import Qubit
 from toriccode.terms import Term
 
 
 class Hamiltonian:
-    def __init__(self, matrix: sparse.coo_matrix, local_terms: List[Term], coefs: List[float]):
+    def __init__(self, qubits: Dict[Qubit, int], local_terms: List[Term], coefs: List[float], matrix: sparse.coo_matrix):
         self.matrix = matrix
         self.local_terms = local_terms
         self.coefs = coefs
-        self.qubits = Term.get_qubits(local_terms)
+        self.qubits = qubits
 
     @property
     def dim(self) -> int:
